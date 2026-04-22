@@ -1,3 +1,5 @@
+{/* GAME IDEA DATA */}
+
 export const genres = ["Horror", "Adventure", "Obby", "Survival", "Tycoon"];
 
 export const twists = [

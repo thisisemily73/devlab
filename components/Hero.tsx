@@ -6,7 +6,6 @@ import { toolRegistry } from "@/lib/toolRegistry";
 const featuredTools = tools.filter(tool => tool.featured);
 
 export default function Hero() {
-    const featured = tools.filter((t) => t.featured);
     const [selectedTool, setSelectedTool] = useState<any | null>(null);
 
     const ToolComponent = selectedTool
@@ -81,7 +80,7 @@ export default function Hero() {
             {/* FEATURED TOOLS */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl">
 
-                {featured.map((tool) => (
+                {featuredTools.map((tool) => (
                     <button
                         key={tool.id}
                         onClick={() => setSelectedTool(tool)}
