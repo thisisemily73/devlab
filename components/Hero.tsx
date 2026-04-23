@@ -15,12 +15,19 @@ export default function Hero() {
     return (
         <section className="relative flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
 
-            {/* BACKGROUND */}
-            <div className="absolute inset-0 -z-10 opacity-30 bg-gradient-to-b from-zinc-900 to-black" />
-
             {/* TITLE */}
-            <h1 className="text-6xl font-bold tracking-tight">
-                DevLab
+            <h1 className="relative text-6xl font-bold tracking-tight">
+
+                {/* Glow layer */}
+                <span className="absolute inset-0 text-white blur-xl opacity-20 animate-pulse">
+                    DevLab
+                </span>
+
+                {/* Main text */}
+                <span className="relative">
+                    DevLab
+                </span>
+
             </h1>
 
             {/* SUBTITLE */}

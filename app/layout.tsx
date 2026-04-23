@@ -1,5 +1,5 @@
 import "./globals.css";
-import Link from "next/link";
+import Sidebar from "@/components/Sidebar";
 
 export default function RootLayout({
   children,
@@ -7,38 +7,44 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-black text-white min-h-screen flex">
+    <html lang="en" className="h-full">
+      <body className="bg-black text-white min-h-screen overflow-x-hidden relative">
 
-        {/* SIDEBAR */}
-        <aside className="w-56 border-r border-zinc-800 p-4 space-y-4">
+        {/* BACKGROUND LAYERS */}
 
-          <Link href="/" className="hover:text-white">
-            <h1 className="text-xl font-bold mb-6">DevLab</h1>
-          </Link>
+        {/* Base gradient */}
+        <div className="fixed inset-0 -z-10 bg-gradient-to-b from-black via-zinc-950 to-black" />
 
-          <nav className="flex flex-col gap-3 text-sm">
+        {/* Grid overlay */}
+        <div className="fixed inset-0 -z-10 opacity-20
+          [background-image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),
+          linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]
+          [background-size:48px_48px]" />
 
+        {/* Glow orbs (ALIVE)
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none"> */}
 
-            <Link href="/tools" className="hover:text-white text-zinc-400">
-              🧰 Tools
-            </Link>
+          {/* purple glow */}
+          {/* <div className="absolute top-[-200px] left-1/2 w-[500px] h-[500px]
+            bg-purple-500/10 blur-3xl rounded-full animate-pulse" /> */}
 
-            <Link href="/scripts" className="hover:text-white text-zinc-400">
-              📜 Scripts
-            </Link>
+          {/* blue glow */}
+          {/* <div className="absolute bottom-[-200px] right-1/2 w-[400px] h-[400px]
+            bg-blue-500/10 blur-3xl rounded-full animate-pulse [animation-delay:2s]" /> */}
 
-            <Link href="/ideas" className="hover:text-white text-zinc-400">
-              🧠 Ideas
-            </Link>
+        {/* </div> */}
 
-          </nav>
+        {/* 🧭 SIDEBAR */}
+        <Sidebar />
 
-        </aside>
+        {/* 📦 MAIN CONTENT */}
+        <main className="min-h-screen flex justify-center">
+          <div className="w-full max-w-3xl px-6 py-8
+            animate-in fade-in slide-in-from-bottom-3 duration-700">
 
-        {/* MAIN CONTENT */}
-        <main className="flex-1 p-6">
-          {children}
+            {children}
+
+          </div>
         </main>
 
       </body>
