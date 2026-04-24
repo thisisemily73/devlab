@@ -102,15 +102,17 @@ export default function GameIdeaTool() {
       showToast("Generate an idea first!");
       return;
     }
-
+  
     const formatted = formatIdea(idea);
-
+  
     const project = create(formatted, formatted);
-
-    showToast("Added to your projects");
-
-    // redirect to project
-    window.location.href = `/projects/${project.id}`;
+  
+    showToast("Started! Opening project...");
+  
+    // slight delay so user sees feedback
+    setTimeout(() => {
+      window.location.href = `/projects/${project.id}`;
+    }, 700);
   };
 
   return (

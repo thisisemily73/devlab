@@ -7,15 +7,15 @@ import { toolRegistry } from "@/lib/toolRegistry";
 import { useProjects } from "@/hooks/useProjects";
 import { useToast } from "@/components/Toast";
 
-const { create } = useProjects();
-const { showToast } = useToast();
-
 export default function ToolsPage() {
     const [filters, setFilters] = useState<string[]>([]);
     const [query, setQuery] = useState("");
     const [selectedTool, setSelectedTool] = useState<any | null>(null);
 
-    {/* RENDER TOOL*/ }
+    // ✅ MOVE HOOKS INSIDE COMPONENT
+    const { create } = useProjects();
+    const { showToast } = useToast();
+
     const ActiveTool = selectedTool
         ? toolRegistry[selectedTool.id]
         : null;
@@ -33,9 +33,7 @@ export default function ToolsPage() {
         );
     };
 
-    const clearFilters = () => {
-        setFilters([]);
-    };
+    const clearFilters = () => setFilters([]);
 
     const featuredTools = tools.filter((tool) => tool.featured);
 
@@ -53,40 +51,38 @@ export default function ToolsPage() {
     return (
         <main className="flex flex-col items-center px-6 py-10">
 
-            {/* TITLE */}
             <h1 className="text-3xl font-bold mb-6">Tools</h1>
 
+            {/* FILTERS */}
             <div className="w-full max-w-2xl">
 
-                {/* FILTERS */}
                 <div className="flex gap-2 flex-wrap mb-2">
 
-                    {/* ALL */}
                     <button
                         onClick={() => toggleFilter("all")}
-                        className={`px-3 py-1 rounded-md text-sm border transition ${filters.length === 0
-                            ? "bg-white text-black"
-                            : "bg-zinc-900 border-zinc-800 text-zinc-300"
-                            }`}
+                        className={`px-3 py-1 rounded-md text-sm border transition ${
+                            filters.length === 0
+                                ? "bg-white text-black"
+                                : "bg-zinc-900 border-zinc-800 text-zinc-300"
+                        }`}
                     >
                         All
                     </button>
 
-                    {/* CATEGORY FILTERS */}
                     {["generator", "utility"].map((type) => (
                         <button
                             key={type}
                             onClick={() => toggleFilter(type)}
-                            className={`px-3 py-1 rounded-md text-sm border transition ${filters.includes(type)
-                                ? "bg-white text-black"
-                                : "bg-zinc-900 border-zinc-800 text-zinc-300"
-                                }`}
+                            className={`px-3 py-1 rounded-md text-sm border transition ${
+                                filters.includes(type)
+                                    ? "bg-white text-black"
+                                    : "bg-zinc-900 border-zinc-800 text-zinc-300"
+                            }`}
                         >
                             {type}
                         </button>
                     ))}
 
-                    {/* CLEAR */}
                     <button
                         onClick={clearFilters}
                         className="px-3 py-1 text-sm text-zinc-400 hover:text-white ml-auto"
@@ -96,7 +92,6 @@ export default function ToolsPage() {
 
                 </div>
 
-
                 {/* SEARCH */}
                 <input
                     value={query}
@@ -104,19 +99,16 @@ export default function ToolsPage() {
                     placeholder="Search tools..."
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm mb-4"
                 />
-
             </div>
 
-            {/* FEATURED TOOLS */}
+            {/* FEATURED */}
             {filters.length === 0 && query === "" && (
                 <div className="w-full max-w-2xl mb-6">
-
                     <h2 className="text-sm text-zinc-400 mb-2">
                         Featured Tools
                     </h2>
 
                     <div className="grid gap-3">
-
                         {featuredTools.map((tool) => (
                             <div
                                 key={tool.id}
@@ -124,46 +116,31 @@ export default function ToolsPage() {
                                 className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl cursor-pointer hover:bg-zinc-800 transition"
                             >
                                 <p className="font-semibold">{tool.name}</p>
-                                <p className="text-xs text-zinc-400">{tool.desc}</p>
+                                <p className="text-xs text-zinc-400">
+                                    {tool.desc}
+                                </p>
                             </div>
                         ))}
-
                     </div>
-
                 </div>
             )}
-
 
             {/* DIVIDER */}
             <div className="w-full max-w-2xl my-6 flex items-center gap-3">
-
                 <div className="h-px flex-1 bg-zinc-800" />
-
                 <span className="text-xs text-zinc-500 tracking-wider">
                     ALL TOOLS
                 </span>
-
                 <div className="h-px flex-1 bg-zinc-800" />
-
             </div>
 
-            {/* IF NO RESULTS */}
-            {filteredTools.length === 0 && (
-                <div className="w-full max-w-2xl text-center py-10">
-                    <p className="text-zinc-400">No tools found.</p>
-                </div>
-            )}
-
-
-            {/* TOOL LIST */}
+            {/* LIST */}
             <div className="w-full max-w-2xl space-y-4">
-
-                {filteredTools.map((tool, i) => (
+                {filteredTools.map((tool) => (
                     <div
-                        key={i}
+                        key={tool.id}
                         className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl"
                     >
-
                         <h2 className="font-semibold">{tool.name}</h2>
                         <p className="text-gray-400 text-sm mt-1">
                             {tool.desc}
@@ -175,13 +152,11 @@ export default function ToolsPage() {
                         >
                             Open
                         </button>
-
                     </div>
                 ))}
-
             </div>
 
-            {/* TOOL MODAL */}
+            {/* MODAL */}
             <ToolModal
                 open={!!selectedTool}
                 title={selectedTool?.name || ""}
