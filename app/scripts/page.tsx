@@ -4,6 +4,10 @@ import { useState } from "react";
 import { scripts as scriptData } from "@/lib/scriptsData";
 import ScriptsSearch from "@/components/ScriptsSearch";
 import { useToast } from "@/components/Toast";
+import { useProjects } from "@/hooks/useProjects";
+
+const { create } = useProjects();
+const { showToast } = useToast();
 
 export default function ScriptsPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);

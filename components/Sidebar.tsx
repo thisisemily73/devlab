@@ -13,15 +13,18 @@ export default function Sidebar() {
 
       <nav className="flex flex-col gap-3 text-sm">
         <Link href="/tools" className="hover:text-white text-zinc-400">
-          🧰 Tools
+          Tools
         </Link>
 
         <Link href="/scripts" className="hover:text-white text-zinc-400">
-          📜 Scripts
+          Scripts
         </Link>
 
         <Link href="/ideas" className="hover:text-white text-zinc-400">
-          🧠 Ideas
+          Ideas
+        </Link>
+        <Link href="/projects" className="hover:text-white text-zinc-400">
+          My Projects
         </Link>
       </nav>
 

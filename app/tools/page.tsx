@@ -4,10 +4,11 @@ import { useState } from "react";
 import { tools } from "@/lib/toolsData";
 import ToolModal from "@/components/ToolModal";
 import { toolRegistry } from "@/lib/toolRegistry";
+import { useProjects } from "@/hooks/useProjects";
+import { useToast } from "@/components/Toast";
 
-
-import GameIdeaTool from "@/components/tools/GameIdeaTool";
-import UsernameTool from "@/components/tools/UsernameTool";
+const { create } = useProjects();
+const { showToast } = useToast();
 
 export default function ToolsPage() {
     const [filters, setFilters] = useState<string[]>([]);
