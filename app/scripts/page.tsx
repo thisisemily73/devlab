@@ -3,18 +3,17 @@
 import { useState } from "react";
 import { scripts as scriptData } from "@/lib/scriptsData";
 import ScriptsSearch from "@/components/ScriptsSearch";
-import Toast from "@/components/Toast";
+import { useToast } from "@/components/Toast";
 
 export default function ScriptsPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [query, setQuery] = useState("");
-  const [showToast, setShowToast] = useState(false);
+
+  const { showToast } = useToast();
 
   const copy = (code: string) => {
     navigator.clipboard.writeText(code);
-    setShowToast(true);
-
-    setTimeout(() => setShowToast(false), 1200);
+    showToast("Copied!");
   };
 
   const toggleView = (index: number) => {
@@ -77,9 +76,6 @@ export default function ScriptsPage() {
         ))}
 
       </div>
-
-      {/* TOAST */}
-      <Toast show={showToast} />
 
     </main>
   );
