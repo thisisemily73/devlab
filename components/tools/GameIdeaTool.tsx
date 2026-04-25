@@ -1,18 +1,108 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { genres, twists, goals, mechanics, refineOptions } from "@/lib/ideaData";
-import { useProjects } from "@/hooks/useProjects";
+import {
+  GENRES,
+  TWISTS,
+  GOALS,
+  MECHANICS,
+  COMPLICATIONS,
+  AESTHETICS,
+  SETTINGS,
+} from "@/lib/ideaData";
 import { useToast } from "@/components/Toast";
+import { useProjects } from "@/hooks/useProjects";
+
+type IdeaSection = "pitch" | "hook" | "objective" | "difficulty" | "look";
+
+const SECTIONS: IdeaSection[] = [
+  "pitch",
+  "hook",
+  "objective",
+  "difficulty",
+  "look",
+];
+
+type Idea = Partial<Record<IdeaSection, string>>;
 
 export default function GameIdeaTool() {
-  const [idea, setIdea] = useState<any | null>(null);
-  const [saved, setSaved] = useState<any[]>([]);
-
-  const { create } = useProjects();
   const { showToast } = useToast();
 
-  // load daily idea
+  const [idea, setIdea] = useState<Idea>({});
+  const [saved, setSaved] = useState<Idea[]>([]);
+
+  const { create } = useProjects();
+
+  const [selected, setSelected] = useState<Record<IdeaSection, boolean>>({
+    pitch: true,
+    hook: true,
+    objective: true,
+    difficulty: false,
+    look: false,
+  });
+
+  const pick = (arr: string[]) =>
+    arr[Math.floor(Math.random() * arr.length)];
+
+  const toggle = (key: IdeaSection) => {
+    setSelected((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const [pendingProject, setPendingProject] = useState<any | null>(null);
+
+  // ----------------------------
+  // GENERATORS (SAFE VERSION)
+  // ----------------------------
+  const makeSection = (key: IdeaSection): string => {
+    switch (key) {
+      case "pitch":
+        return `A ${pick(GENRES)} game set in ${pick(SETTINGS)}.`;
+      case "hook":
+        return pick(TWISTS);
+      case "objective":
+        return `The goal is to ${pick(GOALS)} while managing ${pick(MECHANICS)}.`;
+      case "difficulty":
+        return `To make it harder: ${pick(COMPLICATIONS)}.`;
+      case "look":
+        return `Visual style: ${pick(AESTHETICS)}.`;
+    }
+  };
+
+  // ----------------------------
+  // GENERATE FULL IDEA
+  // ----------------------------
+  const generateIdea = (): Idea => {
+    const result: Idea = {};
+
+    SECTIONS.forEach((key) => {
+      if (selected[key]) {
+        result[key] = makeSection(key);
+      }
+    });
+
+    return result;
+  };
+
+  // ----------------------------
+  // REGENERATE SINGLE PART (FIXED)
+  // ----------------------------
+  const regeneratePart = (key: IdeaSection) => {
+    setIdea((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        [key]: makeSection(key),
+      };
+    });
+  };
+
+  // ----------------------------
+  // LOAD DAILY IDEA
+  // ----------------------------
   useEffect(() => {
     const today = new Date().toDateString();
     const stored = localStorage.getItem("dailyIdea");
@@ -25,7 +115,7 @@ export default function GameIdeaTool() {
       }
     }
 
-    const newIdea = generateIdeaObject();
+    const newIdea = generateIdea();
 
     localStorage.setItem(
       "dailyIdea",
@@ -35,41 +125,19 @@ export default function GameIdeaTool() {
     setIdea(newIdea);
   }, []);
 
-  // load saved ideas
+  // ----------------------------
+  // LOAD SAVED
+  // ----------------------------
   useEffect(() => {
     const data = localStorage.getItem("savedIdeas");
     if (data) setSaved(JSON.parse(data));
   }, []);
 
-  // helpers
-  const generateIdeaObject = () => ({
-    genre: genres[Math.floor(Math.random() * genres.length)],
-    twist: twists[Math.floor(Math.random() * twists.length)],
-    goal: goals[Math.floor(Math.random() * goals.length)],
-    mechanic: mechanics[Math.floor(Math.random() * mechanics.length)],
-  });
-
-  const formatIdea = (idea: any) => {
-    return `${idea.genre} game where you ${idea.goal.toLowerCase()} using ${idea.mechanic.toLowerCase()}, but ${idea.twist.toLowerCase()}.`;
-  };
-
-  // actions
+  // ----------------------------
+  // ACTIONS
+  // ----------------------------
   const generate = () => {
-    setIdea(generateIdeaObject());
-  };
-
-  const refineIdea = () => {
-    if (!idea) return;
-
-    const option =
-      refineOptions[Math.floor(Math.random() * refineOptions.length)];
-
-    setIdea({
-      ...idea,
-      twist: idea.twist + " + " + option,
-    });
-
-    showToast("Idea refined");
+    setIdea(generateIdea());
   };
 
   const saveIdea = () => {
@@ -82,18 +150,12 @@ export default function GameIdeaTool() {
     showToast("Saved");
   };
 
-  const deleteIdea = (index: number) => {
-    const updated = saved.filter((_, i) => i !== index);
-    setSaved(updated);
-    localStorage.setItem("savedIdeas", JSON.stringify(updated));
-  };
-
   const copyIdea = () => {
     if (!idea) return;
 
-    const text = formatIdea(idea);
-
+    const text = Object.values(idea).join(" ");
     navigator.clipboard.writeText(text);
+
     showToast("Copied!");
   };
 
@@ -102,40 +164,67 @@ export default function GameIdeaTool() {
       showToast("Generate an idea first!");
       return;
     }
-  
-    const formatted = formatIdea(idea);
-  
-    const project = create(formatted, formatted);
-  
-    showToast("Started! Opening project...");
-  
-    // slight delay so user sees feedback
-    setTimeout(() => {
-      window.location.href = `/projects/${project.id}`;
-    }, 700);
+
+    const text = Object.values(idea).join(" ");
+
+    const project = create(text, text);
+
+    setPendingProject(project);
+
+    showToast("Project created!", [
+      {
+        label: "Undo",
+        onClick: () => {
+          const confirmUndo = confirm("Are you sure you want to undo this project?");
+          if (!confirmUndo) return;
+
+          const all = JSON.parse(localStorage.getItem("projects") || "[]");
+          const filtered = all.filter((p: any) => p.id !== project.id);
+
+          localStorage.setItem("projects", JSON.stringify(filtered));
+
+          setPendingProject(null);
+        },
+      },
+      {
+        label: "Go to project",
+        onClick: () => {
+          window.location.href = `/projects/${project.id}`;
+        },
+      },
+    ]);
   };
 
+  // ----------------------------
+  // UI
+  // ----------------------------
   return (
     <div className="space-y-4">
+      <p className="text-xs text-zinc-500">Today’s Idea</p>
 
-      <p className="text-xs text-zinc-500">
-        Today’s Idea
-      </p>
+      {/* TOGGLES */}
+      <div className="flex flex-wrap gap-2">
+        {SECTIONS.map((key) => (
+          <button
+            key={key}
+            onClick={() => toggle(key)}
+            className={`px-3 py-1 rounded-full text-xs transition ${selected[key]
+              ? "bg-white text-black"
+              : "bg-zinc-800 text-zinc-400"
+              }`}
+          >
+            {key}
+          </button>
+        ))}
+      </div>
 
+      {/* ACTIONS */}
       <div className="flex gap-2 flex-wrap">
-
         <button
           onClick={generate}
           className="bg-white text-black px-3 py-1 rounded-md text-sm"
         >
           🔁 Generate
-        </button>
-
-        <button
-          onClick={refineIdea}
-          className="bg-zinc-700 text-white px-3 py-1 rounded-md text-sm"
-        >
-          ✨ Refine
         </button>
 
         <button
@@ -158,22 +247,31 @@ export default function GameIdeaTool() {
         >
           ⚡ Start This Game
         </button>
-
       </div>
 
+      {/* IDEA */}
       {idea && (
-        <div className="bg-zinc-800 p-3 rounded-md text-sm space-y-1">
-          <p><b>Genre:</b> {idea.genre}</p>
-          <p><b>Twist:</b> {idea.twist}</p>
-          <p><b>Goal:</b> {idea.goal}</p>
-          <p><b>Mechanic:</b> {idea.mechanic}</p>
+        <div className="bg-zinc-800 p-3 rounded-md text-sm space-y-2">
+          {SECTIONS.map((key) =>
+            idea[key] ? (
+              <div key={key} className="flex justify-between items-center">
+                <p>
+                  <b className="capitalize">{key}:</b> {idea[key]}
+                </p>
 
-          <div className="mt-2 text-xs text-zinc-400 italic">
-            {formatIdea(idea)}
-          </div>
+                <button
+                  onClick={() => regeneratePart(key)}
+                  className="text-xs text-zinc-500 hover:text-white"
+                >
+                  ↻
+                </button>
+              </div>
+            ) : null
+          )}
         </div>
       )}
 
+      {/* SAVED */}
       {saved.length > 0 && (
         <div className="mt-4 space-y-2">
           <p className="text-xs text-zinc-400">Saved Ideas</p>
@@ -183,12 +281,14 @@ export default function GameIdeaTool() {
               key={i}
               className="bg-zinc-800 p-2 rounded text-xs flex justify-between items-center"
             >
-              <span>
-                {s.genre} — {s.twist}
-              </span>
+              <span>{Object.values(s).join(" ").slice(0, 60)}...</span>
 
               <button
-                onClick={() => deleteIdea(i)}
+                onClick={() => {
+                  const updated = saved.filter((_, index) => index !== i);
+                  setSaved(updated);
+                  localStorage.setItem("savedIdeas", JSON.stringify(updated));
+                }}
                 className="text-zinc-500 hover:text-red-400 transition text-xs"
               >
                 ✕
@@ -197,7 +297,6 @@ export default function GameIdeaTool() {
           ))}
         </div>
       )}
-
     </div>
   );
 }
