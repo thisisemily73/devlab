@@ -13,6 +13,9 @@ import {
 import { useToast } from "@/components/Toast";
 import { useProjects } from "@/hooks/useProjects";
 
+import CreateProjectModal from "@/components/CreateProjectModal";
+
+
 type IdeaSection = "pitch" | "hook" | "objective" | "difficulty" | "look";
 
 const SECTIONS: IdeaSection[] = [
@@ -51,7 +54,9 @@ export default function GameIdeaTool() {
     }));
   };
 
-  const [pendingProject, setPendingProject] = useState<any | null>(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [pendingIdeaText, setPendingIdeaText] = useState("");
 
   // ----------------------------
   // GENERATORS (SAFE VERSION)
@@ -160,40 +165,43 @@ export default function GameIdeaTool() {
   };
 
   const startGame = () => {
-    if (!idea) {
-      showToast("Generate an idea first!");
-      return;
-    }
+  if (!idea) {
+    showToast("Generate an idea first!");
+    return;
+  }
 
-    const text = Object.values(idea).join(" ");
+  const text = Object.values(idea).join(" ");
 
-    const project = create(text, text);
+  setPendingIdeaText(text);
+  setShowCreateModal(true);
+};
 
-    setPendingProject(project);
+const handleCreateProject = (title: string) => {
+  const project = create(title, pendingIdeaText);
 
-    showToast("Project created!", [
-      {
-        label: "Undo",
-        onClick: () => {
-          const confirmUndo = confirm("Are you sure you want to undo this project?");
-          if (!confirmUndo) return;
+  setShowCreateModal(false);
 
-          const all = JSON.parse(localStorage.getItem("projects") || "[]");
-          const filtered = all.filter((p: any) => p.id !== project.id);
+  showToast("Project created!", [
+    {
+      label: "Undo",
+      onClick: () => {
+        const confirmUndo = confirm("Are you sure?");
+        if (!confirmUndo) return;
 
-          localStorage.setItem("projects", JSON.stringify(filtered));
+        const all = JSON.parse(localStorage.getItem("projects") || "[]");
+        const filtered = all.filter((p: any) => p.id !== project.id);
 
-          setPendingProject(null);
-        },
+        localStorage.setItem("projects", JSON.stringify(filtered));
       },
-      {
-        label: "Go to project",
-        onClick: () => {
-          window.location.href = `/projects/${project.id}`;
-        },
+    },
+    {
+      label: "Go to project",
+      onClick: () => {
+        window.location.href = `/projects/${project.id}`;
       },
-    ]);
-  };
+    },
+  ]);
+};
 
   // ----------------------------
   // UI
@@ -297,6 +305,14 @@ export default function GameIdeaTool() {
           ))}
         </div>
       )}
+
+      <CreateProjectModal
+        open={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreate={handleCreateProject}
+        ideaText={pendingIdeaText}
+      />
+
     </div>
   );
 }
